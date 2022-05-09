@@ -17,6 +17,7 @@ class Communication():
       # 判断是否打开成功
        if (self.main_engine.is_open):
         Ret = True
+        print("串口打开成功！")
     except Exception as e:
       print("---异常---：", e)
 
