@@ -2,6 +2,7 @@
 
 class slotMethods(object):
 
+  hexadecimalFlag = 0
   #初始化
   def __init__(self):
     pass

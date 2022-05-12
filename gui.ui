@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1191</width>
-    <height>819</height>
+    <width>1346</width>
+    <height>864</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -19,8 +19,8 @@
      <rect>
       <x>10</x>
       <y>20</y>
-      <width>1151</width>
-      <height>771</height>
+      <width>1311</width>
+      <height>821</height>
      </rect>
     </property>
     <layout class="QVBoxLayout" name="verticalLayout">
@@ -32,7 +32,7 @@
           <bool>true</bool>
          </property>
          <property name="title">
-          <string>GroupBox</string>
+          <string>串口设置</string>
          </property>
          <widget class="QWidget" name="horizontalLayoutWidget">
           <property name="geometry">
@@ -89,6 +89,19 @@
               </widget>
              </item>
             </layout>
+           </item>
+           <item>
+            <spacer name="horizontalSpacer">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
            </item>
            <item>
             <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -247,15 +260,15 @@
        <item>
         <widget class="QGroupBox" name="groupBox_3">
          <property name="title">
-          <string>GroupBox</string>
+          <string>串口信息</string>
          </property>
-         <widget class="QTextEdit" name="textEdit_2">
+         <widget class="QTableView" name="tableView">
           <property name="geometry">
            <rect>
-            <x>3</x>
-            <y>16</y>
-            <width>561</width>
-            <height>361</height>
+            <x>5</x>
+            <y>21</y>
+            <width>631</width>
+            <height>351</height>
            </rect>
           </property>
          </widget>
@@ -266,41 +279,68 @@
      <item>
       <widget class="QGroupBox" name="groupBox_2">
        <property name="title">
-        <string>GroupBox</string>
+        <string>数据发送</string>
        </property>
-       <widget class="QWidget" name="horizontalLayoutWidget_2">
+       <widget class="QWidget" name="gridLayoutWidget">
         <property name="geometry">
          <rect>
           <x>50</x>
-          <y>40</y>
-          <width>741</width>
-          <height>89</height>
+          <y>30</y>
+          <width>1041</width>
+          <height>141</height>
          </rect>
         </property>
-        <layout class="QHBoxLayout" name="horizontalLayout">
-         <item>
-          <widget class="QLabel" name="label_7">
-           <property name="text">
-            <string>发送区1</string>
-           </property>
-          </widget>
+        <layout class="QGridLayout" name="gridLayout">
+         <item row="0" column="0">
+          <layout class="QGridLayout" name="gridLayout_2">
+           <item row="0" column="1">
+            <widget class="QCheckBox" name="checkBox_hexadecimal">
+             <property name="text">
+              <string>16进制</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="2">
+            <widget class="QPushButton" name="pushButton_send">
+             <property name="text">
+              <string>发送</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="2">
+            <widget class="QPushButton" name="pushButton_clear">
+             <property name="text">
+              <string>清空</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="1">
+            <widget class="QCheckBox" name="checkBox_2">
+             <property name="text">
+              <string>添加校验</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="0">
+            <widget class="QLabel" name="label_7">
+             <property name="text">
+              <string>  发送区1</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QComboBox" name="comboBox">
+             <item>
+              <property name="text">
+               <string>CRC校验</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+          </layout>
          </item>
-         <item>
-          <widget class="QPushButton" name="pushButton_clear">
-           <property name="text">
-            <string>清空</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="pushButton_send">
-           <property name="text">
-            <string>发送</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QTextEdit" name="textEdit"/>
+         <item row="0" column="1">
+          <widget class="QTextEdit" name="textEdit_sendMessage"/>
          </item>
         </layout>
        </widget>
