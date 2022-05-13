@@ -60,15 +60,8 @@ class Communication():
   #发送信息
   def sendMessage(self,message,flag):
     if flag:
-      self.main_engine.write(message)# 十六进制发送数据
+      for hexmsg in message:
+        self.main_engine.write(hexmsg)# 十六进制发送数据
     else:
-      self.main_engine.write(message.encode('utf-8'))
+      self.main_engine.write(message[0].encode('utf-8'))
 
-  def test_sendMessage(self):
-    str = ''
-    hstr = bytes.fromhex(str)
-    self.main_engine.write(hstr)
-   # instr = int(str,base = 16)
-    #self.main_engine.write(chr(instr).encode('utf-8'))  # 十六制发送一个数据
-    #self.main_engine.write(chr(0x12).encode("utf-8")) # 十六制发送一个数据
-    self.main_engine.write('12'.encode('utf-8'))
