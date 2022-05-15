@@ -1,0 +1,88 @@
+QWidget{
+    font-family: 'YouYuan';
+    background-color: rgb(45,45,48);
+    }
+
+QPushButton{
+    font-family: 'YouYuan';
+    color: white;
+    }
+
+QLabel{
+    font-family: 'YouYuan';
+    color: white;
+    }
+
+QTextEdit{
+    font-family: 'YouYuan';
+    font :15pt;
+    color: white;
+}
+
+QComboBox{
+    font-family: 'YouYuan';
+    color: white;
+    }
+
+QCheckBox{
+    font-family: 'YouYuan';
+    color: white;
+    }
+
+QGroupBox{
+    font-family: 'YouYuan';
+    font :15pt;
+    border-color: rgb(0,122,204);
+    color: rgb(122,162,255);
+    }
+
+QTableView:HorizontalHeaderLabels{
+    font-family: 'YouYuan';
+    background-color: rgb(45,45,48);
+}
+
+QHeaderView::section, QTableCornerButton::section{
+    padding: 1px;
+    border: none;
+    border-bottom: 1px solid rgb(75, 120, 154);
+    border-right: 1px solid rgb(75, 120, 154);
+    border-bottom: 1px solid gray;
+    background-color:rgba(45, 45, 48, 1);
+    color:rgba(43,145,175,1);
+    }
+
+
+
+QScrollBar:vertical{  
+    background:#FFFFFF;
+    padding-top:3px;
+    padding-bottom:3px;
+    padding-left:20px;
+    padding-right:20px;
+    }
+
+QScrollBar::handle:vertical{ 
+    background:#dbdbdb;  
+    border-radius:6px;
+    min-80px;
+    }
+QScrollBar::handle:vertical:hover{  
+    background:#d0d0d0;
+    }
+
+QScrollBar:horizontal{  
+    background:#FFFFFF;
+    padding-top:3px;
+    padding-bottom:3px;
+    padding-left:20px;
+    padding-right:20px;
+    }
+
+QScrollBar::handle:horizontal{ 
+    background:#dbdbdb;  
+    border-radius:6px;
+    min-80px;
+    }
+QScrollBar::handle:horizontal:hover{  
+    background:#d0d0d0;
+    }

@@ -12,6 +12,8 @@ import identifySerialPort as isp
 from PyQt5 import QtCore
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
+from PyQt5.Qt import *
+from PyQt5.QtCore import Qt, QFile, QTextStream, QIODevice, QByteArray,QUrl
 
 #创建槽函数实例对象
 slotMethodInstance = slotMethod.slotMethods()
@@ -168,6 +170,10 @@ if __name__ == '__main__':
     ui = gui.Ui_MainWindow()
     ui.setupUi(MainWindow)
 
+    txtfile = open('I:/PythonLearning/ComMonitor/ComMonitor/base.qss')
+    qss = txtfile.read()
+    MainWindow.setStyleSheet(qss)
+
     model = QStandardItemModel(20, 6)
     # 设置水平方向四个头标签文本内容
     model.setHorizontalHeaderLabels(['时间','串口号','读/写','长度','HEX','ASCII'])
@@ -178,6 +184,13 @@ if __name__ == '__main__':
     ui.tableView.setColumnWidth(3, 40)#长度
     ui.tableView.setColumnWidth(4, 200)#hex
     ui.tableView.setColumnWidth(5, 200)#ascii
+
+    ui.label_git.setOpenExternalLinks(1)
+    ui.label_git.setText(
+        "<a style='color: green; text-decoration: none' href = https://github.com/TjfCCC123/ComMonitor>点击转到开源地址")
+    #ui.label_git.setAlignment(Qt::AlignCenter)
+
+
     #开始检测串口
     list_port = isp.Communication.Print_Used_Com()
     if(len(list_port)>0):
