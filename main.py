@@ -14,6 +14,8 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.Qt import *
 from PyQt5.QtCore import Qt, QFile, QTextStream, QIODevice, QByteArray,QUrl
+import crcmod
+
 
 #创建槽函数实例对象
 slotMethodInstance = slotMethod.slotMethods()
@@ -22,6 +24,8 @@ slotMethodInstance = slotMethod.slotMethods()
 comboBoxPortNoToportNo = []
 
 sendMsgNumber = 0
+
+portStateFlag = 0
 
 #串口信息
 #创建一个字典存储串口默认信息
@@ -75,13 +79,34 @@ ispInstance = isp.Communication("COM1",115200,0)
 
 
 #打开串口
-def openPort1():
+def openOrClosePort():
+    global portStateFlag
+    if portStateFlag == 0:
+        openPort()
+        #global portStateFlag
+        portStateFlag = 1
+        print("openOrClosePort---openPort")
+    else:
+        closePort()
+        #global portStateFlag
+        portStateFlag = 0
+        print("openOrClosePort---closePort")
+
+#打开串口
+def openPort():
     ispInstance.Open_Engine(comboBoxPortNoToportNo[ui.comboBox_port.currentIndex()],comPortInfo["Baud"],0)
-    print("openPort1")
+    ui.label_status.setText("状态：串口开启")
+    ui.label_status.setStyleSheet("color:green")
+    ui.pushButton_openPort.setText("关闭串口")
+    print("openPort")
 
 #关闭串口
 def closePort():
     ispInstance.main_engine.close()
+    ui.label_status.setText("状态：串口关闭")
+    ui.label_status.setStyleSheet("color:red")
+    ui.pushButton_openPort.setText("打开串口")
+    print("closePort")
 
 def chooseHexadecimalFormat():
     flag = ui.checkBox_hexadecimal.isChecked()
@@ -163,6 +188,11 @@ def slot_sendMessage():
 def test123():
     print("test123")
     #tableview写内容
+    #str1 = '12'
+    #crc32_func = crcmod.mkCrcFun(0x8005,initCrc=0xFFFF,xorOut=0x0000)
+    #print(hex(crc32_func(0x12)))
+    eeee = crcmod.mkCrcFun(poly=0x8005,initCrc=0xFFFF,rev=True,xorOut=0x0000)
+    print("test123")
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
@@ -170,7 +200,7 @@ if __name__ == '__main__':
     ui = gui.Ui_MainWindow()
     ui.setupUi(MainWindow)
 
-    txtfile = open('I:/PythonLearning/ComMonitor/ComMonitor/base.qss')
+    txtfile = open('./base.qss')
     qss = txtfile.read()
     MainWindow.setStyleSheet(qss)
 
@@ -178,7 +208,7 @@ if __name__ == '__main__':
     # 设置水平方向四个头标签文本内容
     model.setHorizontalHeaderLabels(['时间','串口号','读/写','长度','HEX','ASCII'])
     ui.tableView.setModel(model)
-    ui.tableView.setColumnWidth(0, 100)#时间
+    ui.tableView.setColumnWidth(0, 90)#时间
     ui.tableView.setColumnWidth(1, 60)#串口号
     ui.tableView.setColumnWidth(2, 60)#读/写
     ui.tableView.setColumnWidth(3, 40)#长度
@@ -188,7 +218,9 @@ if __name__ == '__main__':
     ui.label_git.setOpenExternalLinks(1)
     ui.label_git.setText(
         "<a style='color: green; text-decoration: none' href = https://github.com/TjfCCC123/ComMonitor>点击转到开源地址")
-    #ui.label_git.setAlignment(Qt::AlignCenter)
+    ui.label_status.setText("状态：串口关闭")
+    ui.label_status.setStyleSheet("color:red")
+    MainWindow.resize(1228,700)
 
 
     #开始检测串口
@@ -198,7 +230,7 @@ if __name__ == '__main__':
         ui.comboBox_port.currentIndexChanged.connect(updateChoosenPortInfo)
         ui.comboBox_Baud.currentIndexChanged.connect(updateChoosenPortInfo)
         ui.pushButton_openPort.clicked.connect(updateChoosenPortInfo)
-        ui.pushButton_openPort.clicked.connect(openPort1)
+        ui.pushButton_openPort.clicked.connect(openOrClosePort)
         ui.pushButton_send.clicked.connect(slot_sendMessage)
         ui.checkBox_hexadecimal.stateChanged.connect(chooseHexadecimalFormat)
         countPortNum = 0

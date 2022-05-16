@@ -41,6 +41,11 @@ QTableView:HorizontalHeaderLabels{
     background-color: rgb(45,45,48);
 }
 
+QTableView{
+    font-family: 'Times New Roman';
+    color:white;
+}
+
 QHeaderView::section, QTableCornerButton::section{
     padding: 1px;
     border: none;
@@ -51,38 +56,69 @@ QHeaderView::section, QTableCornerButton::section{
     color:rgba(43,145,175,1);
     }
 
-
-
-QScrollBar:vertical{  
-    background:#FFFFFF;
-    padding-top:3px;
-    padding-bottom:3px;
-    padding-left:20px;
-    padding-right:20px;
+QScrollBar:vertical{   
+    background: rgb(45,45,48);
+    padding-top:10px;
+    padding-bottom:10px;
+    padding-left:3px;
+    padding-right:3px;
     }
 
 QScrollBar::handle:vertical{ 
-    background:#dbdbdb;  
+    background:rgb(35, 35, 35);
     border-radius:6px;
     min-80px;
     }
 QScrollBar::handle:vertical:hover{  
-    background:#d0d0d0;
-    }
+    background:rgb(60, 60, 60);
+}
+
+QScrollBar::add-page:vertical{
+    background-color: rgb(45, 45, 48);
+}
+
+QScrollBar::sub-page:vertical{
+    background-color: rgb(45, 45, 48);
+}
+
+QScrollBar::add-line:vertical{
+    background-color: rgb(45, 45, 48);
+}
+
+QScrollBar::sub-line:vertical{
+    background-color: rgb(45, 45, 48);
+}
 
 QScrollBar:horizontal{  
-    background:#FFFFFF;
+    background:rgb(45, 45, 48);
     padding-top:3px;
     padding-bottom:3px;
-    padding-left:20px;
-    padding-right:20px;
+    padding-left:10px;
+    padding-right:10px;
     }
 
 QScrollBar::handle:horizontal{ 
-    background:#dbdbdb;  
+    background:rgb(35, 35, 35);
     border-radius:6px;
     min-80px;
     }
+
 QScrollBar::handle:horizontal:hover{  
-    background:#d0d0d0;
+    background:rgb(60, 60, 60);
+    }
+
+QScrollBar::add-page:horizontal{
+    background-color: rgb(45, 45, 48);
+    }
+
+QScrollBar::sub-page:horizontal{
+    background-color: rgb(45, 45, 48);
+    }
+
+QScrollBar::add-line:horizontal{
+    background-color: rgb(45, 45, 48);
+    }
+    
+QScrollBar::sub-line:horizontal{
+    background-color: rgb(45, 45, 48);
     }
