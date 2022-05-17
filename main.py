@@ -20,6 +20,35 @@ import crcmod
 #创建槽函数实例对象
 slotMethodInstance = slotMethod.slotMethods()
 
+#slotMethod 槽函数
+
+#关闭窗口
+def closeWindow():
+    sys.exit(app.exec_())
+
+#初始化
+windowMaximinzedFlag = 0
+
+#窗口最大化
+def windowMaximized():
+    global windowMaximinzedFlag
+    if windowMaximinzedFlag!=1:
+        windowMaximinzedFlag = 1
+        MainWindow.showMaximized()
+    else:
+        windowMaximinzedFlag = 0
+        MainWindow.showNormal()
+
+#窗口最小化
+def windowminimized():
+    MainWindow.showMinimized()
+
+
+
+
+
+
+
 #列表记录comboBox_port的序号到端口号的映射
 comboBoxPortNoToportNo = []
 
@@ -187,18 +216,43 @@ def slot_sendMessage():
 
 def test123():
     print("test123")
-    #tableview写内容
-    #str1 = '12'
-    #crc32_func = crcmod.mkCrcFun(0x8005,initCrc=0xFFFF,xorOut=0x0000)
-    #print(hex(crc32_func(0x12)))
-    eeee = crcmod.mkCrcFun(poly=0x8005,initCrc=0xFFFF,rev=True,xorOut=0x0000)
+
+    datalist=[0x0102]
+    test_crc = 0xFFFF  # 预置1个16位的寄存器为十六进制FFFF（即全为1），称此寄存器为CRC寄存器；
+    #poly = 0xa001
+    poly=0x8005
+    numl = len(datalist)
+    for num in range(numl):
+        data = datalist[num]
+        test_crc = (data & 0xFF) ^ test_crc  # 把第一个8位二进制数据（既通讯信息帧的第一个字节）与16位的CRC寄存器的低8位相异或，把结果放于CRC寄存器，高八位数据不变；
+        """
+        （3）、把CRC寄存器的内容右移一位（朝低位）用0填补最高位，并检查右移后的移出位；
+        （4）、如果移出位为0：重复第3步（再次右移一位）；如果移出位为1，CRC寄存器与多
+            项式A001（1010 0000 0000 0001）进行异或；
+        """
+        # 右移动
+        for bit in range(8):
+            if (test_crc & 0x1) != 0:
+                test_crc >>= 1
+                test_crc ^= poly
+            else:
+                test_crc >>= 1
+    print(hex(test_crc))
     print("test123")
+
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     MainWindow = QMainWindow()
     ui = gui.Ui_MainWindow()
     ui.setupUi(MainWindow)
+
+    #槽函数
+    ui.pushButton_close.clicked.connect(closeWindow)
+    ui.pushButton_windowMaximized.clicked.connect(windowMaximized)
+    ui.pushButton_windowminimized.clicked.connect(windowminimized)
+
 
     txtfile = open('./base.qss')
     qss = txtfile.read()
@@ -217,12 +271,13 @@ if __name__ == '__main__':
 
     ui.label_git.setOpenExternalLinks(1)
     ui.label_git.setText(
-        "<a style='color: green; text-decoration: none' href = https://github.com/TjfCCC123/ComMonitor>点击转到开源地址")
+        "<a style='color: green; text-decoration: none' href = https://github.com/TjfCCC123/ComMonitor>点击转到开源网址")
     ui.label_status.setText("状态：串口关闭")
     ui.label_status.setStyleSheet("color:red")
+
+
+
     MainWindow.resize(1228,700)
-
-
     #开始检测串口
     list_port = isp.Communication.Print_Used_Com()
     if(len(list_port)>0):
@@ -244,6 +299,8 @@ if __name__ == '__main__':
         print("未检测到串口！")
 
     test123()
-
+    #MainWindow.setAcceptDrops(True)
+    MainWindow.setWindowFlags(Qt.FramelessWindowHint)		#隐藏主窗口边界
     MainWindow.show()
+
     sys.exit(app.exec_())
