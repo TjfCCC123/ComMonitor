@@ -2,6 +2,7 @@
 #串口操作类
 import serial
 import serial.tools.list_ports
+import qthread
 import gui
 class Communication():
 
@@ -48,14 +49,20 @@ class Communication():
       # 判断是否打开成功
       if (self.main_engine.is_open):
         print("串口打开成功！")
+        return True
     except Exception as e:
-      print("---异常---：", e)
+        print("---异常---：", e)
+        return False
 
   #关闭串口
   def Close_Engine(self):
-    print("关闭串口")
-    self.main_engine.close()
-    print(self.main_engine.is_open) # 检验串口是否打开
+    try:
+      #print("关闭串口")
+      self.main_engine.close()
+      #print("关闭串口2")
+      #print(self.main_engine.is_open) # 检验串口是否打开
+    except Exception as e:
+        print("---关闭串口异常---：", e)
 
   #发送信息
   def sendMessage(self,message,flag):
@@ -64,4 +71,9 @@ class Communication():
         self.main_engine.write(hexmsg)# 十六进制发送数据
     else:
       self.main_engine.write(message[0].encode('utf-8'))
+
+  #接收信息
+  def receievMsg(self):
+    return self.main_engine.readall()
+
 

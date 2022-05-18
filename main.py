@@ -15,6 +15,7 @@ from PyQt5.QtGui import *
 from PyQt5.Qt import *
 from PyQt5.QtCore import Qt, QFile, QTextStream, QIODevice, QByteArray,QUrl
 import crcmod
+import qthread
 
 
 #创建槽函数实例对象
@@ -52,7 +53,7 @@ def windowminimized():
 #列表记录comboBox_port的序号到端口号的映射
 comboBoxPortNoToportNo = []
 
-sendMsgNumber = 0
+msgNumber = 0
 
 portStateFlag = 0
 
@@ -110,32 +111,87 @@ ispInstance = isp.Communication("COM1",115200,0)
 #打开串口
 def openOrClosePort():
     global portStateFlag
-    if portStateFlag == 0:
-        openPort()
+    try:
+        if portStateFlag == 0:
+            isopen = openPort()
         #global portStateFlag
-        portStateFlag = 1
-        print("openOrClosePort---openPort")
-    else:
-        closePort()
+            if isopen:
+                portStateFlag = 1
+            else:
+                portStateFlag = 0
+            print("openOrClosePort---openPort")
+        else:
+            closePort()
         #global portStateFlag
-        portStateFlag = 0
-        print("openOrClosePort---closePort")
+            portStateFlag = 0
+            print("openOrClosePort---closePort")
+    except Exception as e:
+        print("---异常---：", e)
 
+
+#接收信息类，使用线程接收
+class receievMessage(QThread):
+    def run(self):
+        global msgNumber
+        while True:
+            receivedMsg = ispInstance.receievMsg()
+            if len(receivedMsg)!=0:
+                #如果数据不为空，那么添加到tableview里
+                # 时间
+                nowtime = time.strftime('%H：%M：%S', time.localtime(time.time()))
+                item = QStandardItem(nowtime)
+                model.setItem(msgNumber, 0, item)
+                # 串口号
+                item = QStandardItem(comboBoxPortNoToportNo[ui.comboBox_port.currentIndex()])
+                model.setItem(msgNumber, 1, item)
+                # 读/写
+                item = QStandardItem('read')
+                model.setItem(msgNumber, 2, item)
+                # 长度
+                item = QStandardItem(str(len(receivedMsg)))
+                model.setItem(msgNumber, 3, item)
+                # hex
+
+                # ascii
+                item = QStandardItem(receivedMsg.decode('utf-8'))
+                model.setItem(msgNumber, 5, item)
+
+                ui.tableView.setModel(model)
+                msgNumber = msgNumber + 1
+                print(receivedMsg)
+
+recMsgInstance = receievMessage()
 #打开串口
 def openPort():
-    ispInstance.Open_Engine(comboBoxPortNoToportNo[ui.comboBox_port.currentIndex()],comPortInfo["Baud"],0)
-    ui.label_status.setText("状态：串口开启")
-    ui.label_status.setStyleSheet("color:green")
-    ui.pushButton_openPort.setText("关闭串口")
     print("openPort")
+    isOpen = ispInstance.Open_Engine(comboBoxPortNoToportNo[ui.comboBox_port.currentIndex()],comPortInfo["Baud"],0)
+    if isOpen:
+        ui.label_status.setText("状态：串口开启")
+        ui.label_status.setStyleSheet("color:green")
+        ui.pushButton_openPort.setText("关闭串口")
+        recMsgInstance.start()
+        return True
+    else:
+        QMessageBox.warning(MainWindow, "警告", "串口打开失败！提示：串口可能已经被占用。", QMessageBox.Yes)
+        return False
 
 #关闭串口
 def closePort():
-    ispInstance.main_engine.close()
-    ui.label_status.setText("状态：串口关闭")
-    ui.label_status.setStyleSheet("color:red")
-    ui.pushButton_openPort.setText("打开串口")
-    print("closePort")
+    try:
+        recMsgInstance.terminate()
+        while True:
+            if recMsgInstance.isFinished():
+                print("线程已关闭")
+                ispInstance.Close_Engine()
+                break
+            else:
+                print("线程未关闭")
+        ui.label_status.setText("状态：串口关闭")
+        ui.label_status.setStyleSheet("color:red")
+        ui.pushButton_openPort.setText("打开串口")
+        print("closePort")
+    except Exception as e:
+        print("---关闭异常---：", e)
 
 def chooseHexadecimalFormat():
     flag = ui.checkBox_hexadecimal.isChecked()
@@ -146,7 +202,7 @@ def chooseHexadecimalFormat():
 
 #发送串口数据
 def slot_sendMessage():
-    global sendMsgNumber
+    global msgNumber
     message = ui.textEdit_sendMessage.toPlainText()
     hexMessageList = []
     #如果是十六进制，那么检查是否非法0~F
@@ -189,30 +245,38 @@ def slot_sendMessage():
         # 时间
         nowtime = time.strftime('%H：%M：%S', time.localtime(time.time()))
         item = QStandardItem(nowtime)
-        model.setItem(sendMsgNumber, 0, item)
+        model.setItem(msgNumber, 0, item)
         # 串口号
         item = QStandardItem(comboBoxPortNoToportNo[ui.comboBox_port.currentIndex()])
-        model.setItem(sendMsgNumber, 1, item)
+        model.setItem(msgNumber, 1, item)
         #读/写
         item = QStandardItem('write')
-        model.setItem(sendMsgNumber, 2, item)
+        model.setItem(msgNumber, 2, item)
         # 长度
         if slotMethodInstance.hexadecimalFlag == 1:
             item = QStandardItem(str(len(hexMessageList)))
-            model.setItem(sendMsgNumber, 3, item)
+            model.setItem(msgNumber, 3, item)
         else:
             item = QStandardItem(str(len(hexMessageList[0])))
-            model.setItem(sendMsgNumber, 3, item)
+            model.setItem(msgNumber, 3, item)
         # hex
 
         # ascii
         item = QStandardItem(hexMessageList[0])
-        model.setItem(sendMsgNumber, 5, item)
+        model.setItem(msgNumber, 5, item)
 
         ui.tableView.setModel(model)
         ispInstance.sendMessage(hexMessageList,slotMethodInstance.hexadecimalFlag)
-        sendMsgNumber = sendMsgNumber + 1
-        print(sendMsgNumber)
+        msgNumber = msgNumber + 1
+        #print(msgNumber)
+
+
+
+
+
+
+
+
 
 def test123():
     print("test123")
@@ -268,10 +332,9 @@ if __name__ == '__main__':
     ui.tableView.setColumnWidth(3, 40)#长度
     ui.tableView.setColumnWidth(4, 200)#hex
     ui.tableView.setColumnWidth(5, 200)#ascii
-
     ui.label_git.setOpenExternalLinks(1)
     ui.label_git.setText(
-        "<a style='color: green; text-decoration: none' href = https://github.com/TjfCCC123/ComMonitor>点击转到开源网址")
+        "<a style='color: green; text-decoration: none' href = https://github.com/TjfCCC123/ComMonitor>点击转至开源网址https://github.com/TjfCCC123/ComMonitor")
     ui.label_status.setText("状态：串口关闭")
     ui.label_status.setStyleSheet("color:red")
 
