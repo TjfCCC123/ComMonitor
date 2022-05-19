@@ -47,6 +47,9 @@
           <verstretch>0</verstretch>
          </sizepolicy>
         </property>
+        <property name="cursor">
+         <cursorShape>OpenHandCursor</cursorShape>
+        </property>
        </widget>
       </item>
       <item>
@@ -391,7 +394,7 @@
               <widget class="QComboBox" name="comboBox_check">
                <item>
                 <property name="text">
-                 <string>CRC校验</string>
+                 <string>CRC16/MODBUS</string>
                 </property>
                </item>
               </widget>

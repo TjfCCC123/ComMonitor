@@ -16,10 +16,17 @@ from PyQt5.Qt import *
 from PyQt5.QtCore import Qt, QFile, QTextStream, QIODevice, QByteArray,QUrl
 import crcmod
 import qthread
+import widgetDrag
+from PyQt5.QtCore import QPoint
 
+from binascii import unhexlify
+from crcmod import mkCrcFun
 
 #创建槽函数实例对象
 slotMethodInstance = slotMethod.slotMethods()
+
+#widgetDragInstance = widgetDrag.widgetdrag()
+
 
 #slotMethod 槽函数
 
@@ -78,27 +85,27 @@ parityBitAllInfo = (8,7,6)
 stopBitsAllInfo = (1,1.5,2)
 
 def updateChoosenPortInfo():
-    print("-"*20)
+    #print("-"*20)
     #更新选中串口号
     portNo = ui.comboBox_port.currentText()
     comPortInfo["portNo"] = portNo
-    print(comPortInfo["portNo"])
+    #print(comPortInfo["portNo"])
     #更新波特率
     baudNo = ui.comboBox_Baud.currentIndex()
     comPortInfo["Baud"] = baudAllInfo[baudNo]
-    print(comPortInfo["Baud"])
+    #print(comPortInfo["Baud"])
     # 更新数据位
     dataBitNo = ui.comboBox_dataBit.currentIndex()
     comPortInfo["dataBit"] = dataBitsAllInfo[dataBitNo]
-    print(comPortInfo["dataBit"])
+    #print(comPortInfo["dataBit"])
     # 更新校验位
     parityBitNo = ui.comboBox_parityBit.currentIndex()
     comPortInfo["parityBit"] = parityBitAllInfo[parityBitNo]
-    print(comPortInfo["parityBit"])
+    #print(comPortInfo["parityBit"])
     # 更新停止位
     stopBitNo = ui.comboBox_stopBit.currentIndex()
     comPortInfo["stopBit"] = stopBitsAllInfo[stopBitNo]
-    print(comPortInfo["stopBit"])
+    #print(comPortInfo["stopBit"])
 
 #清除发送串口数据
 def clearSendMessage():
@@ -268,41 +275,108 @@ def slot_sendMessage():
         ui.tableView.setModel(model)
         ispInstance.sendMessage(hexMessageList,slotMethodInstance.hexadecimalFlag)
         msgNumber = msgNumber + 1
-        #print(msgNumber)
+
+movedPosX = int()
+movedPosY = int()
+def moveToDragPos(movedPosX,movedPosY):
+    print("moveToDragPos")
+    newGe = QRect()
+    nowGe = MainWindow.geometry()
+    print(nowGe)
+    MainWindow.setGeometry(nowGe.x()-movedPosX,nowGe.y()-movedPosY,nowGe.width(),nowGe.height())
 
 
 
 
 
+def crc8():
+    print("crc8-start")
+    test_crc8 = 0x11   # 数据
+    poly_crc8 = 0x11d  # 多项式
+    for bit in range(8):
+        if (test_crc8 & 0x80) != 0:   # 判断首位是否为1
+            test_crc8 <<= 1           # 右移
+            test_crc8 ^= poly_crc8    # 异或计算
+        else:
+            test_crc8 <<= 1           # 不等于1则直接移位
+    print(hex(test_crc8))
+    print("crc8-end")
+
+
+def test():
+    print("test123-start")
+
+    #输入str
+    #输出正确的校验码
+
+    #crc = "89"
+    #ploy = "8005"
+    #test_crc = int(crc, 16)  # 将str类型转化成16进制
+    #poly_crc8 = int(ploy, 16)  # 将str类型转化成16进制
+
+    '''test_crc = '89'
+    ploy = '8005'
+    test_crc16 = int(test_crc, 16)  # 将str类型转化成16进制
+    poly_crc16 = int(ploy, 16)  # 将str类型转化成16进制
+    print(poly_crc16)
+    print(test_crc16)
+    #补0
+    for i in range(15):
+        test_crc16<<=1
+    print(test_crc16)
+
+    #转换为2进制
+    #test_crc_2 = int(test_crc_10,2)
+    #test_crc_2 = bin(test_crc)
+    #poly_crc8_2 = bin(poly_crc8)
+    #print(test_crc_2)
+    #test_crc_2.
+    #for i in range(15):
+        #test_crc_2 << = 0
+
+    while test_crc16.bit_count()!=15:
+        while test_crc16 & 0x800000 == 0 :
+            test_crc >>= 1
+        test_crc16 ^= poly_crc16
+
+    print(hex(test_crc))'''
 
 
 
 
-def test123():
-    print("test123")
 
-    datalist=[0x0102]
-    test_crc = 0xFFFF  # 预置1个16位的寄存器为十六进制FFFF（即全为1），称此寄存器为CRC寄存器；
-    #poly = 0xa001
-    poly=0x8005
-    numl = len(datalist)
-    for num in range(numl):
-        data = datalist[num]
-        test_crc = (data & 0xFF) ^ test_crc  # 把第一个8位二进制数据（既通讯信息帧的第一个字节）与16位的CRC寄存器的低8位相异或，把结果放于CRC寄存器，高八位数据不变；
-        """
-        （3）、把CRC寄存器的内容右移一位（朝低位）用0填补最高位，并检查右移后的移出位；
-        （4）、如果移出位为0：重复第3步（再次右移一位）；如果移出位为1，CRC寄存器与多
-            项式A001（1010 0000 0000 0001）进行异或；
-        """
-        # 右移动
-        for bit in range(8):
-            if (test_crc & 0x1) != 0:
-                test_crc >>= 1
-                test_crc ^= poly
-            else:
-                test_crc >>= 1
-    print(hex(test_crc))
-    print("test123")
+    print("test123-end")
+
+
+# CRC16/MODBUS
+def crc16_modbus(s):
+    crc16 = mkCrcFun(0x18005, rev=True, initCrc=0xFFFF, xorOut=0x0000)
+    return get_crc_value(s, crc16)
+
+# common func
+def get_crc_value(s, crc16):
+    data = s.replace(' ', '')
+    crc_out = hex(crc16(unhexlify(data))).upper()
+    str_list = list(crc_out)
+    if len(str_list) == 5:
+        str_list.insert(2, '0')  # 位数不足补0
+    crc_data = ''.join(str_list[2:])
+    #加高低位
+    if ui.comboBox_LSBMSB.currentIndex() == 0:
+        return crc_data[2:] + ' ' + crc_data[:2]
+    else:
+        return crc_data[:2] + ' ' + crc_data[2:]
+
+def addCheck():
+    #获取发送数据
+    sendMsg = ui.textEdit_sendMessage.toPlainText()
+    if ui.comboBox_check.currentIndex() == 0:
+        # CRC16/MODBUS
+        print("CRC16/MODBUS")
+        crcMsg = crc16_modbus(sendMsg)
+        newMsg = sendMsg+' '+crcMsg
+        ui.textEdit_sendMessage.setText(newMsg)
+
 
 
 
@@ -311,13 +385,16 @@ if __name__ == '__main__':
     MainWindow = QMainWindow()
     ui = gui.Ui_MainWindow()
     ui.setupUi(MainWindow)
-
     #槽函数
     ui.pushButton_close.clicked.connect(closeWindow)
     ui.pushButton_windowMaximized.clicked.connect(windowMaximized)
     ui.pushButton_windowminimized.clicked.connect(windowminimized)
+    ui.pushButton_addCheck.clicked.connect(addCheck)
 
-
+    # 将事件与槽建立关联
+    #nowPos = QPoint()
+    #widgetDragInstance.getMovePosSignal(0x01).connect(moveToDragPos(0x01))
+    ui.widget_drag.getMovePosSignal.connect(moveToDragPos)
     txtfile = open('./base.qss')
     qss = txtfile.read()
     MainWindow.setStyleSheet(qss)
@@ -361,7 +438,10 @@ if __name__ == '__main__':
     else:
         print("未检测到串口！")
 
-    test123()
+    test()
+    s3 = crc16_modbus("89")
+    print('crc16_modbus: ' + s3)
+    #crc8()
     #MainWindow.setAcceptDrops(True)
     MainWindow.setWindowFlags(Qt.FramelessWindowHint)		#隐藏主窗口边界
     MainWindow.show()
