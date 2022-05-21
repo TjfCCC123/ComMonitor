@@ -3,66 +3,28 @@
    @date:     2022/5/7"""
 
 #显示ui
+import binascii
+
 import gui
 import sys
-import slotMethod
 import time
-#from PyQt5.QtWidgets import QApplication, QMainWindow
 import identifySerialPort as isp
 from PyQt5 import QtCore
-from PyQt5.QtWidgets import *
-from PyQt5.QtGui import *
 from PyQt5.Qt import *
 from PyQt5.QtCore import Qt, QFile, QTextStream, QIODevice, QByteArray,QUrl
-import crcmod
-import qthread
-import widgetDrag
-from PyQt5.QtCore import QPoint
-
-from binascii import unhexlify
+from binascii import unhexlify,hexlify
 from crcmod import mkCrcFun
+import csv
+import re
 
-#创建槽函数实例对象
-slotMethodInstance = slotMethod.slotMethods()
-
-#widgetDragInstance = widgetDrag.widgetdrag()
-
-
-#slotMethod 槽函数
-
-#关闭窗口
-def closeWindow():
-    sys.exit(app.exec_())
 
 #初始化
 windowMaximinzedFlag = 0
-
-#窗口最大化
-def windowMaximized():
-    global windowMaximinzedFlag
-    if windowMaximinzedFlag!=1:
-        windowMaximinzedFlag = 1
-        MainWindow.showMaximized()
-    else:
-        windowMaximinzedFlag = 0
-        MainWindow.showNormal()
-
-#窗口最小化
-def windowminimized():
-    MainWindow.showMinimized()
-
-
-
-
-
-
-
 #列表记录comboBox_port的序号到端口号的映射
 comboBoxPortNoToportNo = []
-
 msgNumber = 0
-
 portStateFlag = 0
+
 
 #串口信息
 #创建一个字典存储串口默认信息
@@ -83,6 +45,40 @@ parityBitAllInfo = (8,7,6)
 
 #创建元组存储停止位
 stopBitsAllInfo = (1,1.5,2)
+
+
+
+
+#创建一个串口test对象
+ispInstance = isp.Communication("COM1",115200,0)
+
+#slotMethod 槽函数
+
+
+
+#------------------------------------------------------
+#关闭窗口
+def closeWindow():
+    sys.exit(app.exec_())
+
+#窗口最大化
+def windowMaximized():
+    global windowMaximinzedFlag
+    if windowMaximinzedFlag!=1:
+        windowMaximinzedFlag = 1
+        MainWindow.showMaximized()
+    else:
+        windowMaximinzedFlag = 0
+        MainWindow.showNormal()
+
+#窗口最小化
+def windowminimized():
+    MainWindow.showMinimized()
+
+#------------------------------------------------------
+
+
+
 
 def updateChoosenPortInfo():
     #print("-"*20)
@@ -111,9 +107,6 @@ def updateChoosenPortInfo():
 def clearSendMessage():
     ui.textEdit_sendMessage.clear()
 
-#创建一个串口test对象
-ispInstance = isp.Communication("COM1",115200,0)
-
 
 #打开串口
 def openOrClosePort():
@@ -136,6 +129,8 @@ def openOrClosePort():
         print("---异常---：", e)
 
 
+
+#另一个文件
 #接收信息类，使用线程接收
 class receievMessage(QThread):
     def run(self):
@@ -168,6 +163,8 @@ class receievMessage(QThread):
                 print(receivedMsg)
 
 recMsgInstance = receievMessage()
+
+
 #打开串口
 def openPort():
     print("openPort")
@@ -203,51 +200,51 @@ def closePort():
 def chooseHexadecimalFormat():
     flag = ui.checkBox_hexadecimal.isChecked()
     if flag:
-        slotMethodInstance.hexadecimalFlag = 1
+        ispInstance.hexadecimalFlag = 1
     else:
-        slotMethodInstance.hexadecimalFlag = 0
+        ispInstance.hexadecimalFlag = 0
 
 #发送串口数据
 def slot_sendMessage():
     global msgNumber
     message = ui.textEdit_sendMessage.toPlainText()
-    hexMessageList = []
+    hexORasciiMessage = []
     #如果是十六进制，那么检查是否非法0~F
     if ui.checkBox_hexadecimal.isChecked() == 1:
         hexFlag = 0
-        list_message = message.split(" ")  # 先按空格分开
-        newlist_message = []
-        print(len(list_message[0]))
-        for msg in list_message:
-            if len(msg) > 2:
-                # 每两个字符分割
-                ij = 0
-                while ij <= len(msg):
-                    if ij + 2 <= len(msg):
-                        stra = msg[ij:ij + 2]
-                        ij = ij + 2
-                        newlist_message.append(stra)
-                    else:
-                        stra = msg[ij:ij + 1]
-                        ij = ij + 1
-                        newlist_message.append(stra)
-            else:
-                newlist_message.append(msg)  # 小于等于2，直接赋值
-        try:
-            for nmessage in newlist_message:
-                if nmessage != '':
-                    hstr = bytes.fromhex(nmessage)
-                    hexMessageList.append(hstr)
-            hexFlag = 1
-        except Exception as e:
+        # 十六进制形式组织信息
+        #先检查非法字符
+        islegal = True
+        for i in range(len(message)):
+            if isHex(message[i]) == 0:
+                islegal = False
+                break
+        if islegal == False:
             hexFlag = 0
-            print("---转换异常---：", e)
-            # 弹窗报警
             QMessageBox.warning(MainWindow, "警告", "发送失败！提示：您的发送信息中含有非十六进制字符。", QMessageBox.Yes)
+        else:
+            list_message = message.split(" ")  # 先按空格分开
+            addedmessage = ''
+            showhexmessage = ''
+            for spmsg in list_message:
+                if len(spmsg) % 2 != 0:
+                    newspmsg = list(spmsg)
+                    newspmsg.insert(len(spmsg) - 1, '0')
+                    spmsg = ''.join(newspmsg)
+                addedmessage = addedmessage + spmsg
+
+
+            #显示的hex信息
+            text_list = re.findall(".{2}", addedmessage)
+            showhexmessage = " ".join(text_list)
+
+            finalmsg = bytes.fromhex(addedmessage)
+            hexORasciiMessage.append(finalmsg)
+            hexFlag = 1
     else:
         hexFlag = 1
         # 文本形式组织信息
-        hexMessageList.append(message)
+        hexORasciiMessage.append(message)
     if hexFlag == 1:
         # 时间
         nowtime = time.strftime('%H：%M：%S', time.localtime(time.time()))
@@ -260,21 +257,45 @@ def slot_sendMessage():
         item = QStandardItem('write')
         model.setItem(msgNumber, 2, item)
         # 长度
-        if slotMethodInstance.hexadecimalFlag == 1:
-            item = QStandardItem(str(len(hexMessageList)))
-            model.setItem(msgNumber, 3, item)
+        item = QStandardItem(str(len(hexORasciiMessage[0])))
+        model.setItem(msgNumber, 3, item)
+        #如果是ascii信息，那么显示
+        if ui.checkBox_hexadecimal.isChecked() == 0:
+            # ascii显示
+            item = QStandardItem(hexORasciiMessage[0])
+            model.setItem(msgNumber, 5, item)
+            # ascii转hex显示
+            h = hexlify(hexORasciiMessage[0].encode())
+            newh = ''
+            for i in range(0,len(h),2):
+                newh+=h[i:i+2].decode('utf-8')
+                newh+=' '
+            item = QStandardItem(str(newh))
+            model.setItem(msgNumber, 4, item)
         else:
-            item = QStandardItem(str(len(hexMessageList[0])))
-            model.setItem(msgNumber, 3, item)
-        # hex
+            # hex显示
+            item = QStandardItem(showhexmessage)
+            model.setItem(msgNumber, 4, item)
+            # hex转ascii显示
+            str_data = hexORasciiMessage[0].decode('utf-8')
+            #h = unhexlify(hexORasciiMessage[0])
 
-        # ascii
-        item = QStandardItem(hexMessageList[0])
-        model.setItem(msgNumber, 5, item)
+            print(str_data)
+            print(type(str_data))
+            #df = ord(str_data)
+            #print(df)
+            #asciiMsg = binascii.a2b_hex(hexORasciiMessage[0])  # 转换成ASCii编码的字符串
+            #s_byte = bytes.fromhex(hexORasciiMessage[0])
+            #s = unhexlify(hexORasciiMessage[0])
+            #s = hexORasciiMessage[0].fromhex()
+            item = QStandardItem(str_data)
+            model.setItem(msgNumber, 5, item)
 
         ui.tableView.setModel(model)
-        ispInstance.sendMessage(hexMessageList,slotMethodInstance.hexadecimalFlag)
+        ispInstance.sendMessage(hexORasciiMessage,ispInstance.hexadecimalFlag)
         msgNumber = msgNumber + 1
+
+
 
 movedPosX = int()
 movedPosY = int()
@@ -303,9 +324,44 @@ def crc8():
     print("crc8-end")
 
 
+ch = ''
+def isHex(ch):
+    if ch>='0'and ch<='9'or ch>='a'and ch<='z'or ch>='A'and ch<='Z'or ch == ' ':
+        return 1
+    else :
+        return 0
+
+
+
+
+
 def test():
     print("test123-start")
 
+
+    message = '12346    789 1'
+
+
+    #aa = bytes.fromhex(stringaa)
+    #print(addedmessage)
+    #self.main_engine.write(b'\x12\x34')  # 十六进制发送数据
+
+
+    '''message = '12 345'
+    list_message = message.split(" ")  # 先按空格分开
+    list_message1 = []
+    for i in list_message:
+        stra = i
+        strb = bytes.fromhex(stra)
+        list_message1.append(strb)
+
+    temp = []
+    for j in range(len(list_message1)):
+        for i in list_message1[j]:
+            temp.append('%02x' % i)
+    print(temp)'''
+    #hstr = bytes.fromhex('02 13 89')
+    #print(nmessage.isdecimal())
     #输入str
     #输出正确的校验码
 
@@ -341,10 +397,6 @@ def test():
 
     print(hex(test_crc))'''
 
-
-
-
-
     print("test123-end")
 
 
@@ -367,6 +419,7 @@ def get_crc_value(s, crc16):
     else:
         return crc_data[:2] + ' ' + crc_data[2:]
 
+#添加校验码
 def addCheck():
     #获取发送数据
     sendMsg = ui.textEdit_sendMessage.toPlainText()
@@ -377,7 +430,22 @@ def addCheck():
         newMsg = sendMsg+' '+crcMsg
         ui.textEdit_sendMessage.setText(newMsg)
 
+#以CSV文件保存
+def saveCsv():
 
+    headers = ['class', 'name', 'sex', 'height', 'year']
+
+    rows = [
+        [1, 'xiaoming', 'male', 168, 23],
+        [1, 'xiaohong', 'female', 162, 22],
+        [2, 'xiaozhang', 'female', 163, 21],
+        [2, 'xiaoli', 'male', 158, 21]
+    ]
+
+    with open('test.csv', 'w') as f:
+        f_csv = csv.writer(f)
+        f_csv.writerow(headers)
+        f_csv.writerows(rows)
 
 
 if __name__ == '__main__':
@@ -415,8 +483,6 @@ if __name__ == '__main__':
     ui.label_status.setText("状态：串口关闭")
     ui.label_status.setStyleSheet("color:red")
 
-
-
     MainWindow.resize(1228,700)
     #开始检测串口
     list_port = isp.Communication.Print_Used_Com()
@@ -439,11 +505,10 @@ if __name__ == '__main__':
         print("未检测到串口！")
 
     test()
-    s3 = crc16_modbus("89")
-    print('crc16_modbus: ' + s3)
-    #crc8()
-    #MainWindow.setAcceptDrops(True)
+    #saveCsv()
+    #openPort
+    #ispInstance.Open_Engine()
+    #ispInstance.main_engine.write(0x12)
     MainWindow.setWindowFlags(Qt.FramelessWindowHint)		#隐藏主窗口边界
     MainWindow.show()
-
     sys.exit(app.exec_())
