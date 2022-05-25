@@ -394,7 +394,17 @@
               <widget class="QComboBox" name="comboBox_check">
                <item>
                 <property name="text">
+                 <string>CRC32</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
                  <string>CRC16/MODBUS</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>CRC8</string>
                 </property>
                </item>
               </widget>

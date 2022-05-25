@@ -65,18 +65,18 @@ class Communication():
         print("---关闭串口异常---：", e)
 
   #发送信息
-  def sendMessage(self,message,flag):
+  def sendMessage(self,message,flag,crc):
     if flag:
-      self.main_engine.write(message[0])
-      #for hexmsg in message:
-        #print(type(bytes(0x12)))
-        #self.main_engine.write(hexmsg)# 十六进制发送数据
-        #stringaa = '123456  7809'
-        #aa = bytes.fromhex(stringaa)
-        #self.main_engine.write(b'\x12\x34')  # 十六进制发送数据
-        #self.main_engine.write(aa)  # 十六进制发送数据
+      if crc:
+        self.main_engine.write(message[0]+message[1])
+      else:
+        self.main_engine.write(message[0])
     else:
-      self.main_engine.write(message[0].encode('utf-8'))
+      if crc:
+        self.main_engine.write(message[0].encode('utf-8')+message[1])
+      else:
+        self.main_engine.write(message[0].encode('utf-8'))
+    return True
 
   #接收信息
   def receievMsg(self):
